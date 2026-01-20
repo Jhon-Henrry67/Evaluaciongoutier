@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Evaluation } from '../types';
 import { EVALUATION_STRUCTURE } from '../constants';
 import { jsPDF } from 'jspdf';
@@ -12,139 +12,147 @@ interface EvaluationDetailProps {
 }
 
 const EvaluationDetail: React.FC<EvaluationDetailProps> = ({ evaluation, onBack, onEdit }) => {
-  const detailRef = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
-  const exportPDF = async () => {
-    if (!detailRef.current) return;
+  const downloadPDF = async () => {
+    if (!ref.current) return;
+    setIsExporting(true);
     
-    const element = detailRef.current;
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-    });
-    
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgWidth = 210;
-    const pageHeight = 297;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    
-    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-    pdf.save(`Eval_${evaluation.lastName}_${evaluation.firstName}_${new Date(evaluation.date).toLocaleDateString()}.pdf`);
-  };
+    try {
+      // Ajustar temporalmente el estilo para asegurar captura completa
+      const element = ref.current;
+      const originalStyle = element.style.height;
+      element.style.height = 'auto';
 
-  const getRatingColor = (val: string) => {
-    switch (val) {
-      case '4': return 'text-emerald-600 bg-emerald-50';
-      case '3': return 'text-blue-600 bg-blue-50';
-      case '2': return 'text-amber-600 bg-amber-50';
-      case '1': return 'text-red-600 bg-red-50';
-      default: return 'text-slate-400 bg-slate-50';
-    }
-  };
+      const canvas = await html2canvas(element, { 
+        scale: 2, 
+        logging: false, 
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight
+      });
 
-  const getRatingLabel = (val: string) => {
-    switch (val) {
-      case '4': return 'Excelente';
-      case '3': return 'Bueno';
-      case '2': return 'Regular';
-      case '1': return 'Insuficiente';
-      default: return 'N/A';
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 210; 
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Primera página
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Páginas adicionales si el contenido es largo
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`Gautier_${evaluation.lastName}_${evaluation.firstName}.pdf`);
+      element.style.height = originalStyle;
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Hubo un error al generar el PDF. Intente nuevamente.");
+    } finally {
+      setIsExporting(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between no-print bg-white p-4 rounded-xl shadow-sm border border-slate-100 sticky top-[72px] z-20">
-        <button type="button" onClick={onBack} className="text-slate-600 hover:text-blue-600 font-bold flex items-center gap-2 px-4 py-2 transition-colors">
-          <i className="fas fa-arrow-left"></i> Volver
+    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+      <div className="flex justify-between items-center no-print px-4">
+        <button onClick={onBack} className="group font-black text-slate-400 hover:text-blue-600 flex items-center gap-2 uppercase tracking-widest text-[10px] transition-all">
+          <i className="fas fa-long-arrow-alt-left group-hover:-translate-x-1 transition-transform"></i> Volver al panel
         </button>
-        <div className="flex gap-2">
-           <button type="button" onClick={onEdit} className="bg-amber-50 text-amber-600 px-4 py-2 rounded-lg font-bold hover:bg-amber-100 transition-colors">
-            <i className="fas fa-edit mr-2"></i> Editar
+        <div className="flex gap-4">
+          <button onClick={onEdit} className="px-6 py-3 rounded-2xl font-black bg-white text-slate-600 border border-slate-100 shadow-sm hover:bg-slate-50 transition-all text-[10px] tracking-widest uppercase">
+            Editar
           </button>
-          <button type="button" onClick={exportPDF} className="bg-blue-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
-            <i className="fas fa-file-pdf mr-2"></i> Descargar PDF
+          <button 
+            onClick={downloadPDF} 
+            disabled={isExporting}
+            className={`px-8 py-3 rounded-2xl font-black text-white shadow-xl transition-all text-[10px] tracking-widest uppercase flex items-center gap-2 ${isExporting ? 'bg-slate-400 cursor-wait' : 'bg-blue-600 shadow-blue-200 hover:bg-blue-700'}`}
+          >
+            {isExporting ? <i className="fas fa-circle-notch animate-spin"></i> : <i className="fas fa-file-pdf"></i>}
+            {isExporting ? 'Generando...' : 'Exportar PDF'}
           </button>
         </div>
       </div>
 
-      <div 
-        ref={detailRef} 
-        className="bg-white p-12 rounded-3xl border border-slate-100 shadow-sm print:p-0 print:border-none print:shadow-none"
-      >
-        <div className="text-center border-b-2 border-blue-600 pb-8 mb-8">
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">RESIDENCIA DE EMERGENCIOLOGÍA Y CUIDADOS CRÍTICOS</h2>
-          <h3 className="text-xl font-bold text-slate-700 mt-1 uppercase">HOSPITAL SALVADOR B. GAUTIER</h3>
-          <p className="text-blue-600 font-black mt-4 tracking-widest uppercase text-sm">Formulario de Evaluación de Competencias del Residente</p>
+      <div ref={ref} className="bg-white p-12 md:p-16 rounded-[4rem] shadow-2xl border border-slate-50 print:shadow-none print:p-8 overflow-hidden">
+        <div className="flex flex-col items-center text-center mb-16 space-y-4">
+          <div className="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center mb-4 shadow-xl shadow-blue-100">
+            <i className="fas fa-hospital text-white text-3xl"></i>
+          </div>
+          <h2 className="text-3xl font-black tracking-tighter text-slate-900 uppercase">Hospital Salvador B. Gautier</h2>
+          <div className="h-1.5 w-24 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-full"></div>
+          <p className="text-blue-600 font-black uppercase text-[11px] tracking-[0.4em] mt-2">Residencia de Emergenciología y Cuidados Críticos</p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10 text-sm">
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-            <span className="block text-slate-400 font-bold uppercase text-[10px] mb-1 tracking-wider">Residente</span>
-            <span className="font-black text-slate-900 text-base">{evaluation.firstName} {evaluation.lastName}</span>
-          </div>
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-            <span className="block text-slate-400 font-bold uppercase text-[10px] mb-1 tracking-wider">Año Académico</span>
-            <span className="font-black text-slate-900 text-base">{evaluation.academicYear}</span>
-          </div>
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-            <span className="block text-slate-400 font-bold uppercase text-[10px] mb-1 tracking-wider">Trimestre</span>
-            <span className="font-black text-slate-900 text-base">{evaluation.trimester}</span>
-          </div>
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-            <span className="block text-slate-400 font-bold uppercase text-[10px] mb-1 tracking-wider">Fecha</span>
-            <span className="font-black text-slate-900 text-base">{new Date(evaluation.date).toLocaleDateString()}</span>
-          </div>
-        </div>
-
-        <div className="space-y-12">
-          {EVALUATION_STRUCTURE.map((cat) => (
-            <div key={cat.id}>
-              <div className="flex items-center gap-4 bg-slate-900 text-white px-6 py-3 rounded-t-2xl">
-                <span className="font-black text-blue-400 text-lg">{cat.id}</span>
-                <span className="font-bold text-sm tracking-widest uppercase">{cat.title}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-16">
+          {[
+            ['Residente', `${evaluation.firstName} ${evaluation.lastName}`, 'fa-user'],
+            ['Año Académico', evaluation.academicYear, 'fa-graduation-cap'],
+            ['Periodo Trimestral', evaluation.trimester, 'fa-clock'],
+            ['Fecha de Evaluación', new Date(evaluation.date).toLocaleDateString(), 'fa-calendar-check']
+          ].map(([l, v, i]) => (
+            <div key={l as string} className="bg-slate-50/80 p-6 rounded-3xl border border-white flex items-center gap-5">
+              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm">
+                <i className={`fas ${i}`}></i>
               </div>
-              <table className="w-full text-left border-collapse overflow-hidden rounded-b-2xl border-x border-b border-slate-200">
-                <thead>
-                  <tr className="bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest">
-                    <th className="border-b border-slate-200 px-6 py-3 w-16 text-center">ID</th>
-                    <th className="border-b border-slate-200 px-6 py-3">{cat.subtitle}</th>
-                    <th className="border-b border-slate-200 px-6 py-3 w-40 text-center">Calificación</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {cat.items.map((item) => {
-                    const val = evaluation.ratings[cat.id]?.[item.id] || '';
-                    return (
-                      <tr key={item.id} className="text-sm hover:bg-slate-50/30">
-                        <td className="px-6 py-4 font-black text-blue-600 text-center">{item.id}</td>
-                        <td className="px-6 py-4 text-slate-600 font-medium">{item.label}</td>
-                        <td className="px-6 py-4">
-                          <div className={`text-center px-3 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-tighter ${getRatingColor(val)}`}>
-                            {val ? `${val} - ${getRatingLabel(val)}` : 'No calificado'}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <div>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{l as string}</p>
+                <p className="font-black text-slate-900 text-lg leading-none">{v as string}</p>
+              </div>
             </div>
           ))}
         </div>
 
-        <div className="mt-28 grid grid-cols-2 gap-20 px-12">
+        <div className="space-y-12">
+          {EVALUATION_STRUCTURE.map(cat => (
+            <div key={cat.id} className="break-inside-avoid">
+              <h3 className="bg-slate-900 text-white px-8 py-5 rounded-t-[2.5rem] font-black text-[11px] uppercase tracking-[0.3em]">
+                {cat.id}. {cat.title}
+              </h3>
+              <div className="border-x border-b border-slate-100 rounded-b-[2.5rem] overflow-hidden">
+                <table className="w-full">
+                  <tbody className="divide-y divide-slate-50">
+                    {cat.items.map(item => (
+                      <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="p-5 w-16 font-black text-blue-600 text-xs border-r border-slate-50 text-center">{item.id}</td>
+                        <td className="p-5 text-xs font-bold text-slate-600 leading-relaxed">{item.label}</td>
+                        <td className="p-5 w-24 text-center">
+                          <span className="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-blue-50 text-blue-700 font-black text-base">
+                            {evaluation.ratings[cat.id]?.[item.id] || '—'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-40 grid grid-cols-2 gap-32 px-12 pb-12">
           <div className="text-center">
-            <div className="h-0.5 bg-slate-900 mb-4"></div>
-            <p className="font-black text-xs text-slate-900 tracking-widest uppercase">FIRMA DEL EVALUADOR</p>
-            <p className="text-slate-400 text-[10px] mt-1 font-bold italic uppercase">Nombre, Sello y Cédula</p>
+            <div className="h-[2px] bg-slate-200 mb-4"></div>
+            <p className="font-black text-[10px] uppercase tracking-[0.3em] text-slate-900">Firma del Evaluador</p>
+            <p className="text-[9px] font-bold text-slate-400 uppercase mt-1">Docencia Médica</p>
           </div>
           <div className="text-center">
-            <div className="h-0.5 bg-slate-900 mb-4"></div>
-            <p className="font-black text-xs text-slate-900 tracking-widest uppercase">FIRMA DEL EVALUADO</p>
-            <p className="text-slate-400 text-[10px] mt-1 font-bold italic uppercase">Residente en Formación</p>
+            <div className="h-[2px] bg-slate-200 mb-4"></div>
+            <p className="font-black text-[10px] uppercase tracking-[0.3em] text-slate-900">Firma del Residente</p>
+            <p className="text-[9px] font-bold text-slate-400 uppercase mt-1">Aceptación</p>
           </div>
         </div>
       </div>

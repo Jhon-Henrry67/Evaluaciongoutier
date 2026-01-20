@@ -14,8 +14,8 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ initialData, onSubmit, 
     initialData || {
       firstName: '',
       lastName: '',
-      academicYear: '',
-      trimester: '',
+      academicYear: '', // Inicia vacío
+      trimester: '',    // Inicia vacío
       ratings: {},
     }
   );
@@ -30,10 +30,9 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ initialData, onSubmit, 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.firstName || !formData.lastName || !formData.academicYear || !formData.trimester) {
-      alert("Por favor complete todos los datos generales.");
-      return;
+      return alert("Por favor, complete todos los datos del residente (incluyendo Año y Trimestre)");
     }
-
+    
     const evaluation: Evaluation = {
       id: formData.id || Math.random().toString(36).substr(2, 9),
       firstName: formData.firstName!,
@@ -43,189 +42,133 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ initialData, onSubmit, 
       date: formData.date || new Date().toISOString(),
       ratings: formData.ratings as EvaluationRatings || {},
     };
-
     onSubmit(evaluation);
   };
 
-  const ratingOptions = [
-    { value: '1', label: '1', color: 'bg-red-50 text-red-600 border-red-200 hover:bg-red-500 hover:text-white', active: 'bg-red-500 text-white border-red-500' },
-    { value: '2', label: '2', color: 'bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-500 hover:text-white', active: 'bg-amber-500 text-white border-amber-500' },
-    { value: '3', label: '3', color: 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-500 hover:text-white', active: 'bg-blue-500 text-white border-blue-500' },
-    { value: '4', label: '4', color: 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-500 hover:text-white', active: 'bg-emerald-500 text-white border-emerald-500' },
-  ];
+  const getRatingStyle = (value: number, isSelected: boolean) => {
+    const base = "w-12 h-12 rounded-2xl font-black text-xs border-2 transition-all transform active:scale-95 flex items-center justify-center";
+    if (!isSelected) return `${base} bg-white text-slate-400 border-slate-100 hover:border-blue-200 hover:text-blue-500`;
+    
+    switch(value) {
+      case 1: return `${base} bg-rose-500 text-white border-rose-500 shadow-lg shadow-rose-200 -translate-y-1`;
+      case 2: return `${base} bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-200 -translate-y-1`;
+      case 3: return `${base} bg-lime-500 text-white border-lime-500 shadow-lg shadow-lime-200 -translate-y-1`;
+      case 4: return `${base} bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-200 -translate-y-1`;
+      default: return base;
+    }
+  };
 
   return (
-    <form onSubmit={handleSave} className="bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-in slide-in-from-bottom duration-500">
-      <div className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 p-8 text-white flex items-center justify-between">
+    <form onSubmit={handleSave} className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-24">
+      <div className="flex items-center justify-between px-2">
         <div>
-          <h2 className="text-2xl font-black tracking-tight">{initialData ? 'Modificar Evaluación' : 'Nueva Evaluación de Competencias'}</h2>
-          <p className="text-blue-100/80 text-sm mt-1 flex items-center gap-2">
-            <i className="fas fa-info-circle"></i>
-            Gestione el progreso académico de los residentes del Gautier
-          </p>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+            {initialData ? 'Editar' : 'Nueva'} <span className="text-blue-600">Evaluación</span>
+          </h2>
+          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Hospital Salvador B. Gautier</p>
         </div>
-        <button type="button" onClick={onCancel} className="bg-white/10 hover:bg-white/20 p-3 rounded-full transition-all hover:rotate-90">
-          <i className="fas fa-times text-xl"></i>
+        <button type="button" onClick={onCancel} className="w-12 h-12 rounded-2xl bg-white border border-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm">
+          <i className="fas fa-times"></i>
         </button>
       </div>
 
-      <div className="p-8 space-y-12">
-        {/* Basic Info Section */}
-        <section className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <i className="fas fa-user text-blue-500"></i> Nombre del Residente
-            </label>
+      {/* Layout 2 arriba, 2 abajo */}
+      <div className="bg-white p-8 rounded-[3rem] border border-blue-50 shadow-2xl shadow-blue-100/50 space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+          <div className="space-y-3">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Nombre</label>
             <input 
               type="text" 
-              className="w-full px-5 py-3 rounded-xl border border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-white font-medium"
               placeholder="Ej. Juan"
+              className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-100 transition-all font-bold placeholder:text-slate-300"
               value={formData.firstName}
-              onChange={e => setFormData({ ...formData, firstName: e.target.value })}
+              onChange={e => setFormData({...formData, firstName: e.target.value})}
               required
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <i className="fas fa-id-card text-blue-500"></i> Apellido
-            </label>
+          <div className="space-y-3">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Apellido</label>
             <input 
               type="text" 
-              className="w-full px-5 py-3 rounded-xl border border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-white font-medium"
               placeholder="Ej. Pérez"
+              className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-100 transition-all font-bold placeholder:text-slate-300"
               value={formData.lastName}
-              onChange={e => setFormData({ ...formData, lastName: e.target.value })}
+              onChange={e => setFormData({...formData, lastName: e.target.value})}
               required
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <i className="fas fa-graduation-cap text-blue-500"></i> Año Académico
-            </label>
-            <div className="relative">
-              <select 
-                className="w-full px-5 py-3 rounded-xl border border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-white appearance-none font-medium cursor-pointer"
-                value={formData.academicYear}
-                onChange={e => setFormData({ ...formData, academicYear: e.target.value })}
-                required
-              >
-                <option value="">Seleccione el año...</option>
-                {ACADEMIC_YEARS.map(year => <option key={year} value={year}>{year}</option>)}
-              </select>
-              <i className="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-            </div>
+          <div className="space-y-3">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Año Académico</label>
+            <select 
+              className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-100 transition-all font-bold appearance-none cursor-pointer"
+              value={formData.academicYear}
+              onChange={e => setFormData({...formData, academicYear: e.target.value})}
+              required
+            >
+              <option value="">Seleccionar año...</option>
+              {ACADEMIC_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
           </div>
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <i className="fas fa-chart-pie text-blue-500"></i> Trimestre a Evaluar
-            </label>
-            <div className="relative">
-              <select 
-                className="w-full px-5 py-3 rounded-xl border border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-white appearance-none font-medium cursor-pointer"
-                value={formData.trimester}
-                onChange={e => setFormData({ ...formData, trimester: e.target.value })}
-                required
-              >
-                <option value="">Seleccione el periodo...</option>
-                {TRIMESTERS.map(tri => <option key={tri} value={tri}>{tri}</option>)}
-              </select>
-              <i className="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-            </div>
+          <div className="space-y-3">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Trimestre</label>
+            <select 
+              className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-100 transition-all font-bold appearance-none cursor-pointer"
+              value={formData.trimester}
+              onChange={e => setFormData({...formData, trimester: e.target.value})}
+              required
+            >
+              <option value="">Seleccionar trimestre...</option>
+              {TRIMESTERS.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
           </div>
-        </section>
+        </div>
+      </div>
 
-        {/* Categories Section */}
-        {EVALUATION_STRUCTURE.map((cat) => (
-          <div key={cat.id} className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-end justify-between border-b-2 border-slate-100 pb-4 gap-2">
-              <div className="flex items-center gap-4">
-                <span className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black shadow-lg shadow-blue-100">
-                  {cat.id}
-                </span>
-                <div>
-                  <h3 className="font-black text-slate-900 text-lg uppercase tracking-tight leading-none">{cat.title}</h3>
-                  <p className="text-blue-500 text-sm font-semibold mt-1">{cat.subtitle}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-tighter hidden md:flex">
-                <span>1 Insuficiente</span>
-                <span>2 Regular</span>
-                <span>3 Bueno</span>
-                <span>4 Excelente</span>
-              </div>
+      <div className="space-y-10">
+        {EVALUATION_STRUCTURE.map(cat => (
+          <div key={cat.id} className="bg-white rounded-[3rem] border border-slate-100 overflow-hidden shadow-xl shadow-slate-100">
+            <div className="bg-slate-900 text-white p-6">
+              <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em]">{cat.id}</span>
+              <h3 className="font-black text-lg uppercase tracking-tight mt-1">{cat.title}</h3>
+              <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-2">{cat.subtitle}</p>
             </div>
-            
-            <div className="grid grid-cols-1 gap-3">
-              {cat.items.map((item) => {
-                const currentRating = formData.ratings?.[cat.id]?.[item.id];
-                return (
-                  <div key={item.id} className="group flex flex-col md:flex-row items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-200/50 transition-all gap-4">
-                    <div className="flex items-start gap-4 flex-1">
-                      <span className="w-7 h-7 flex-shrink-0 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center font-bold text-xs border border-slate-100 group-hover:bg-blue-50 group-hover:text-blue-500 group-hover:border-blue-200 transition-colors">
-                        {item.id}
-                      </span>
-                      <p className="text-slate-600 text-sm font-medium leading-tight pt-1">
-                        {item.label}
-                      </p>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      {ratingOptions.map((opt) => (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => handleRatingChange(cat.id, item.id, opt.value as RatingValue)}
-                          className={`w-12 h-10 rounded-xl border flex items-center justify-center font-black transition-all transform active:scale-90 ${
-                            currentRating === opt.value
-                              ? opt.active
-                              : opt.color
-                          }`}
-                          title={opt.label}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                      <div className="w-px h-6 bg-slate-100 mx-1"></div>
-                      <button
-                        type="button"
-                        onClick={() => handleRatingChange(cat.id, item.id, '')}
-                        className={`w-10 h-10 rounded-xl border transition-all flex items-center justify-center ${
-                          currentRating 
-                            ? 'bg-red-50 text-red-500 border-red-200 hover:bg-red-500 hover:text-white' 
-                            : 'bg-slate-50 text-slate-300 border-slate-100 cursor-default'
-                        }`}
-                        title="Borrar calificación"
+            <div className="divide-y divide-slate-50">
+              {cat.items.map(item => (
+                <div key={item.id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-blue-50/20 transition-colors">
+                  <p className="text-sm font-bold text-slate-600 flex-1 pr-6 leading-relaxed">{item.label}</p>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4].map(v => (
+                      <button 
+                        key={v} 
+                        type="button" 
+                        onClick={() => handleRatingChange(cat.id, item.id, v.toString() as RatingValue)}
+                        className={getRatingStyle(v, formData.ratings?.[cat.id]?.[item.id] === v.toString())}
                       >
-                        <i className="fas fa-eraser"></i>
+                        {v}
                       </button>
-                    </div>
+                    ))}
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="p-8 bg-slate-50 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6 sticky bottom-0 z-20">
-        <div className="flex items-center gap-3 text-slate-400">
-           <i className="fas fa-shield-alt text-xl text-emerald-500"></i>
-           <p className="text-xs font-medium">Los datos se guardan de forma local y segura en este dispositivo.</p>
-        </div>
-        <div className="flex items-center gap-4 w-full md:w-auto">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl z-50">
+        <div className="bg-slate-900/90 backdrop-blur-xl p-4 rounded-[2rem] border border-white/10 shadow-2xl flex gap-4">
           <button 
             type="button" 
             onClick={onCancel}
-            className="flex-1 md:flex-none px-8 py-3.5 rounded-2xl font-bold text-slate-600 hover:bg-white hover:shadow-lg transition-all border border-transparent hover:border-slate-200"
+            className="flex-1 py-4 font-black text-slate-400 hover:text-white uppercase tracking-widest text-[10px] transition-colors"
           >
             Cancelar
           </button>
           <button 
             type="submit"
-            className="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 text-white px-10 py-3.5 rounded-2xl font-black transition-all shadow-xl shadow-blue-200 hover:shadow-blue-300 flex items-center justify-center gap-2 group"
+            className="flex-[2] py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-2xl font-black shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all uppercase tracking-widest text-[10px]"
           >
-            <span>{initialData ? 'Actualizar Evaluación' : 'Guardar Evaluación'}</span>
-            <i className="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            Finalizar Evaluación
           </button>
         </div>
       </div>

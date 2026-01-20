@@ -4,84 +4,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evaluación Gautier - Emergenciología</title>
-    
+    <title>Gautier Eval Pro - Emergenciología</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Cargador Babel para procesar TypeScript/React en el navegador -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-    <script type="importmap">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @media print { .no-print { display: none !important; } }
+        .glass-morphism { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -10px rgba(0,0,0,0.1); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+<script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@19.0.0",
-    "react-dom": "https://esm.sh/react-dom@19.0.0",
-    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
-    "jspdf": "https://esm.sh/jspdf@2.5.1",
-    "html2canvas": "https://esm.sh/html2canvas@1.4.1",
+    "react": "https://esm.sh/react@^19.2.3",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/"
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "jspdf": "https://esm.sh/jspdf@^4.0.0",
+    "html2canvas": "https://esm.sh/html2canvas@^1.4.1"
   }
 }
 </script>
-
-    <style>
-        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        @media print { .no-print { display: none !important; } }
-        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        
-        #root:empty::after {
-            content: 'Iniciando Sistema Gautier...';
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            color: #3b82f6;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-        
-        #error-display {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            background: #fee2e2;
-            border: 2px solid #ef4444;
-            padding: 20px;
-            border-radius: 12px;
-            color: #b91c1c;
-            z-index: 9999;
-            font-family: monospace;
-            white-space: pre-wrap;
-        }
-    </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen">
-    <div id="error-display"></div>
+<body class="bg-slate-50 text-slate-900 min-h-screen custom-scrollbar">
     <div id="root"></div>
-
-    <script type="text/javascript">
-        // Capturador de errores crítico para detectar fallos en GitHub Pages
-        window.onerror = function(msg, url, line) {
-            const display = document.getElementById('error-display');
-            display.style.display = 'block';
-            display.innerHTML = `<strong>Error de Sistema:</strong>\n${msg}\n\nEn: ${url}\nLínea: ${line}`;
-            return false;
-        };
-    </script>
-
-    <script 
-      type="text/babel" 
-      data-type="module" 
-      data-presets="react,typescript" 
-      src="./index.tsx">
-    </script>
+    <script type="module" src="/index.tsx"></script>
 </body>
 </html>
