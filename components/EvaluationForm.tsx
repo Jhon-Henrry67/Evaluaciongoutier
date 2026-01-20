@@ -156,44 +156,52 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ initialData, onSubmit, 
             </div>
             
             <div className="grid grid-cols-1 gap-3">
-              {cat.items.map((item) => (
-                <div key={item.id} className="group flex flex-col md:flex-row items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-200/50 transition-all gap-4">
-                  <div className="flex items-start gap-4 flex-1">
-                    <span className="w-7 h-7 flex-shrink-0 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center font-bold text-xs border border-slate-100 group-hover:bg-blue-50 group-hover:text-blue-500 group-hover:border-blue-200 transition-colors">
-                      {item.id}
-                    </span>
-                    <p className="text-slate-600 text-sm font-medium leading-tight pt-1">
-                      {item.label}
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    {ratingOptions.map((opt) => (
+              {cat.items.map((item) => {
+                const currentRating = formData.ratings?.[cat.id]?.[item.id];
+                return (
+                  <div key={item.id} className="group flex flex-col md:flex-row items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-200/50 transition-all gap-4">
+                    <div className="flex items-start gap-4 flex-1">
+                      <span className="w-7 h-7 flex-shrink-0 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center font-bold text-xs border border-slate-100 group-hover:bg-blue-50 group-hover:text-blue-500 group-hover:border-blue-200 transition-colors">
+                        {item.id}
+                      </span>
+                      <p className="text-slate-600 text-sm font-medium leading-tight pt-1">
+                        {item.label}
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      {ratingOptions.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => handleRatingChange(cat.id, item.id, opt.value as RatingValue)}
+                          className={`w-12 h-10 rounded-xl border flex items-center justify-center font-black transition-all transform active:scale-90 ${
+                            currentRating === opt.value
+                              ? opt.active
+                              : opt.color
+                          }`}
+                          title={opt.label}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                      <div className="w-px h-6 bg-slate-100 mx-1"></div>
                       <button
-                        key={opt.value}
                         type="button"
-                        onClick={() => handleRatingChange(cat.id, item.id, opt.value as RatingValue)}
-                        className={`w-12 h-10 rounded-xl border flex items-center justify-center font-black transition-all transform active:scale-90 ${
-                          formData.ratings?.[cat.id]?.[item.id] === opt.value
-                            ? opt.active
-                            : opt.color
+                        onClick={() => handleRatingChange(cat.id, item.id, '')}
+                        className={`w-10 h-10 rounded-xl border transition-all flex items-center justify-center ${
+                          currentRating 
+                            ? 'bg-red-50 text-red-500 border-red-200 hover:bg-red-500 hover:text-white' 
+                            : 'bg-slate-50 text-slate-300 border-slate-100 cursor-default'
                         }`}
-                        title={opt.label}
+                        title="Borrar calificación"
                       >
-                        {opt.label}
+                        <i className="fas fa-eraser"></i>
                       </button>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => handleRatingChange(cat.id, item.id, '')}
-                      className="w-10 h-10 rounded-xl border border-slate-200 text-slate-300 hover:text-red-500 hover:bg-red-50 hover:border-red-200 transition-all"
-                      title="Limpiar"
-                    >
-                      <i className="fas fa-eraser"></i>
-                    </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))}

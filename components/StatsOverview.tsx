@@ -35,8 +35,11 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ evaluations }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {stats.map((stat, i) => (
-        <div key={i} className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex items-center gap-4">
-          <div className={`${stat.bg} ${stat.color} w-12 h-12 rounded-lg flex items-center justify-center text-xl`}>
+        <div 
+          key={i} 
+          className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex items-center gap-4 transition-all duration-300 hover:scale-110 hover:shadow-xl hover:z-10 cursor-default group"
+        >
+          <div className={`${stat.bg} ${stat.color} w-12 h-12 rounded-lg flex items-center justify-center text-xl transition-transform duration-500 group-hover:rotate-12`}>
             <i className={`fas ${stat.icon}`}></i>
           </div>
           <div>

@@ -1,33 +1,72 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Evaluation } from './types';
-import Header from './components/Header';
-import StatsOverview from './components/StatsOverview';
-import EvaluationList from './components/EvaluationList';
-import EvaluationForm from './components/EvaluationForm';
-import EvaluationDetail from './components/EvaluationDetail';
+import { Evaluation } from './types.ts';
+import Header from './components/Header.tsx';
+import StatsOverview from './components/StatsOverview.tsx';
+import EvaluationList from './components/EvaluationList.tsx';
+import EvaluationForm from './components/EvaluationForm.tsx';
+import EvaluationDetail from './components/EvaluationDetail.tsx';
+
+// ID de contenedor público para el Hospital Gautier
+const CLOUD_BIN_ID = '07d5810f63ca52f10f81'; 
+const CLOUD_URL = `https://api.npoint.io/${CLOUD_BIN_ID}`;
 
 const App: React.FC = () => {
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [view, setView] = useState<'list' | 'form' | 'detail'>('list');
   const [selectedEval, setSelectedEval] = useState<Evaluation | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSync, setLastSync] = useState<Date | null>(null);
 
-  // Persistence
+  // Carga inicial desde la nube
   useEffect(() => {
-    const saved = localStorage.getItem('gautier_evals');
-    if (saved) {
-      try {
-        setEvaluations(JSON.parse(saved));
-      } catch (e) {
-        console.error("Error loading evaluations", e);
-      }
-    }
+    fetchCloudData();
+    // Sincronizar automáticamente cada 60 segundos para no saturar
+    const interval = setInterval(fetchCloudData, 60000);
+    return () => clearInterval(interval);
   }, []);
 
-  const saveToLocal = (data: Evaluation[]) => {
-    setEvaluations(data);
-    localStorage.setItem('gautier_evals', JSON.stringify(data));
+  const fetchCloudData = async () => {
+    setIsSyncing(true);
+    try {
+      const response = await fetch(CLOUD_URL);
+      if (response.ok) {
+        const data = await response.json();
+        const remoteEvals = Array.isArray(data) ? data : [];
+        setEvaluations(remoteEvals);
+        setLastSync(new Date());
+      }
+    } catch (e) {
+      console.error("Error cargando datos de la nube", e);
+      const saved = localStorage.getItem('gautier_evals');
+      if (saved) setEvaluations(JSON.parse(saved));
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const saveToCloud = async (data: Evaluation[]) => {
+    setIsSyncing(true);
+    try {
+      // Guardamos en LocalStorage siempre como respaldo
+      localStorage.setItem('gautier_evals', JSON.stringify(data));
+
+      // Enviamos a la nube usando PUT para reemplazar el contenido completo
+      const response = await fetch(CLOUD_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      if (response.ok) {
+        setLastSync(new Date());
+      }
+    } catch (e) {
+      console.error("Error guardando en la nube", e);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const filteredEvaluations = useMemo(() => {
@@ -55,13 +94,6 @@ const App: React.FC = () => {
     setView('detail');
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('¿Está seguro de que desea eliminar esta evaluación?')) {
-      const updated = evaluations.filter(e => e.id !== id);
-      saveToLocal(updated);
-    }
-  };
-
   const handleSubmit = (evaluation: Evaluation) => {
     const exists = evaluations.findIndex(e => e.id === evaluation.id);
     let updated: Evaluation[];
@@ -71,17 +103,22 @@ const App: React.FC = () => {
     } else {
       updated = [evaluation, ...evaluations];
     }
-    saveToLocal(updated);
+    
+    // Actualización inmediata
+    setEvaluations(updated);
     setView('list');
+    
+    // Sincronización en segundo plano
+    saveToCloud(updated);
   };
 
   return (
     <div className="min-h-screen pb-12 flex flex-col">
-      <Header />
+      <Header isSyncing={isSyncing} lastSync={lastSync} onRefresh={fetchCloudData} />
       
       <main className="flex-1 container mx-auto px-4 max-w-6xl mt-8">
         {view === 'list' && (
-          <div className="space-y-6 animate-in fade-in duration-500">
+          <div className="space-y-6 animate-fade-in">
             <StatsOverview evaluations={evaluations} />
             
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
@@ -96,6 +133,7 @@ const App: React.FC = () => {
                 />
               </div>
               <button 
+                type="button"
                 onClick={handleAdd}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-200"
               >
@@ -108,7 +146,6 @@ const App: React.FC = () => {
               evaluations={filteredEvaluations} 
               onEdit={handleEdit} 
               onView={handleView}
-              onDelete={handleDelete}
             />
           </div>
         )}
@@ -125,13 +162,14 @@ const App: React.FC = () => {
           <EvaluationDetail 
             evaluation={selectedEval} 
             onBack={() => setView('list')}
-            onEdit={() => setView('form')}
+            onEdit={() => handleEdit(selectedEval)}
           />
         )}
       </main>
       
       <footer className="mt-12 text-center text-slate-400 text-sm no-print">
         <p>&copy; {new Date().getFullYear()} Hospital Salvador B. Gautier. Departamento de Docencia.</p>
+        <p className="mt-1 text-[10px] opacity-50 uppercase tracking-widest">Global Sync Enabled (Cloud DB)</p>
       </footer>
     </div>
   );

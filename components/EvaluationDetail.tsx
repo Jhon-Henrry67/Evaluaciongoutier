@@ -56,15 +56,15 @@ const EvaluationDetail: React.FC<EvaluationDetailProps> = ({ evaluation, onBack,
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between no-print bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-        <button onClick={onBack} className="text-slate-600 hover:text-blue-600 font-medium flex items-center gap-2">
-          <i className="fas fa-arrow-left"></i> Volver al listado
+      <div className="flex items-center justify-between no-print bg-white p-4 rounded-xl shadow-sm border border-slate-100 sticky top-[72px] z-20">
+        <button type="button" onClick={onBack} className="text-slate-600 hover:text-blue-600 font-bold flex items-center gap-2 px-4 py-2 transition-colors">
+          <i className="fas fa-arrow-left"></i> Volver
         </button>
         <div className="flex gap-2">
-           <button onClick={onEdit} className="bg-amber-50 text-amber-600 px-4 py-2 rounded-lg font-medium hover:bg-amber-100 transition-colors">
+           <button type="button" onClick={onEdit} className="bg-amber-50 text-amber-600 px-4 py-2 rounded-lg font-bold hover:bg-amber-100 transition-colors">
             <i className="fas fa-edit mr-2"></i> Editar
           </button>
-          <button onClick={exportPDF} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200">
+          <button type="button" onClick={exportPDF} className="bg-blue-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
             <i className="fas fa-file-pdf mr-2"></i> Descargar PDF
           </button>
         </div>
@@ -72,58 +72,58 @@ const EvaluationDetail: React.FC<EvaluationDetailProps> = ({ evaluation, onBack,
 
       <div 
         ref={detailRef} 
-        className="bg-white p-12 rounded-2xl border border-slate-100 shadow-sm print:p-0 print:border-none print:shadow-none"
+        className="bg-white p-12 rounded-3xl border border-slate-100 shadow-sm print:p-0 print:border-none print:shadow-none"
       >
         <div className="text-center border-b-2 border-blue-600 pb-8 mb-8">
-          <h2 className="text-2xl font-bold text-slate-900">RESIDENCIA DE EMERGENCIOLOGÍA Y CUIDADOS CRÍTICOS</h2>
-          <h3 className="text-xl font-semibold text-slate-700 mt-1 uppercase">HOSPITAL SALVADOR B. GAUTIER</h3>
-          <p className="text-blue-600 font-bold mt-4 tracking-wider uppercase text-sm">Formulario de Evaluación de Competencias del Residente</p>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">RESIDENCIA DE EMERGENCIOLOGÍA Y CUIDADOS CRÍTICOS</h2>
+          <h3 className="text-xl font-bold text-slate-700 mt-1 uppercase">HOSPITAL SALVADOR B. GAUTIER</h3>
+          <p className="text-blue-600 font-black mt-4 tracking-widest uppercase text-sm">Formulario de Evaluación de Competencias del Residente</p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 text-sm">
-          <div className="p-3 bg-slate-50 rounded-lg">
-            <span className="block text-slate-400 font-bold uppercase text-[10px] mb-1">Residente</span>
-            <span className="font-bold text-slate-900">{evaluation.firstName} {evaluation.lastName}</span>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10 text-sm">
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <span className="block text-slate-400 font-bold uppercase text-[10px] mb-1 tracking-wider">Residente</span>
+            <span className="font-black text-slate-900 text-base">{evaluation.firstName} {evaluation.lastName}</span>
           </div>
-          <div className="p-3 bg-slate-50 rounded-lg">
-            <span className="block text-slate-400 font-bold uppercase text-[10px] mb-1">Año Académico</span>
-            <span className="font-bold text-slate-900">{evaluation.academicYear}</span>
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <span className="block text-slate-400 font-bold uppercase text-[10px] mb-1 tracking-wider">Año Académico</span>
+            <span className="font-black text-slate-900 text-base">{evaluation.academicYear}</span>
           </div>
-          <div className="p-3 bg-slate-50 rounded-lg">
-            <span className="block text-slate-400 font-bold uppercase text-[10px] mb-1">Trimestre</span>
-            <span className="font-bold text-slate-900">{evaluation.trimester}</span>
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <span className="block text-slate-400 font-bold uppercase text-[10px] mb-1 tracking-wider">Trimestre</span>
+            <span className="font-black text-slate-900 text-base">{evaluation.trimester}</span>
           </div>
-          <div className="p-3 bg-slate-50 rounded-lg">
-            <span className="block text-slate-400 font-bold uppercase text-[10px] mb-1">Fecha</span>
-            <span className="font-bold text-slate-900">{new Date(evaluation.date).toLocaleDateString()}</span>
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <span className="block text-slate-400 font-bold uppercase text-[10px] mb-1 tracking-wider">Fecha</span>
+            <span className="font-black text-slate-900 text-base">{new Date(evaluation.date).toLocaleDateString()}</span>
           </div>
         </div>
 
-        <div className="space-y-10">
+        <div className="space-y-12">
           {EVALUATION_STRUCTURE.map((cat) => (
             <div key={cat.id}>
-              <div className="flex items-center gap-3 bg-slate-900 text-white px-4 py-2 rounded-t-lg">
-                <span className="font-black text-blue-400">{cat.id}</span>
-                <span className="font-bold text-sm tracking-wide">{cat.title}</span>
+              <div className="flex items-center gap-4 bg-slate-900 text-white px-6 py-3 rounded-t-2xl">
+                <span className="font-black text-blue-400 text-lg">{cat.id}</span>
+                <span className="font-bold text-sm tracking-widest uppercase">{cat.title}</span>
               </div>
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse overflow-hidden rounded-b-2xl border-x border-b border-slate-200">
                 <thead>
-                  <tr className="bg-slate-100 text-slate-500 text-[10px] font-bold uppercase">
-                    <th className="border border-slate-200 px-4 py-2 w-12">Item</th>
-                    <th className="border border-slate-200 px-4 py-2">{cat.subtitle}</th>
-                    <th className="border border-slate-200 px-4 py-2 w-32 text-center">Calificación</th>
+                  <tr className="bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest">
+                    <th className="border-b border-slate-200 px-6 py-3 w-16 text-center">ID</th>
+                    <th className="border-b border-slate-200 px-6 py-3">{cat.subtitle}</th>
+                    <th className="border-b border-slate-200 px-6 py-3 w-40 text-center">Calificación</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-100">
                   {cat.items.map((item) => {
                     const val = evaluation.ratings[cat.id]?.[item.id] || '';
                     return (
-                      <tr key={item.id} className="text-sm">
-                        <td className="border border-slate-200 px-4 py-3 font-bold text-slate-900 text-center">{item.id}</td>
-                        <td className="border border-slate-200 px-4 py-3 text-slate-600">{item.label}</td>
-                        <td className="border border-slate-200 px-4 py-3">
-                          <div className={`text-center px-2 py-1 rounded font-bold text-xs ${getRatingColor(val)}`}>
-                            {val ? `${val} - ${getRatingLabel(val)}` : 'N/C'}
+                      <tr key={item.id} className="text-sm hover:bg-slate-50/30">
+                        <td className="px-6 py-4 font-black text-blue-600 text-center">{item.id}</td>
+                        <td className="px-6 py-4 text-slate-600 font-medium">{item.label}</td>
+                        <td className="px-6 py-4">
+                          <div className={`text-center px-3 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-tighter ${getRatingColor(val)}`}>
+                            {val ? `${val} - ${getRatingLabel(val)}` : 'No calificado'}
                           </div>
                         </td>
                       </tr>
@@ -135,18 +135,16 @@ const EvaluationDetail: React.FC<EvaluationDetailProps> = ({ evaluation, onBack,
           ))}
         </div>
 
-        <div className="mt-24 grid grid-cols-2 gap-16 px-12">
+        <div className="mt-28 grid grid-cols-2 gap-20 px-12">
           <div className="text-center">
-            <div className="border-t-2 border-slate-900 pt-3">
-              <p className="font-bold text-sm text-slate-900">FIRMA DEL EVALUADOR</p>
-              <p className="text-slate-400 text-xs mt-1 italic">Nombre y Cédula</p>
-            </div>
+            <div className="h-0.5 bg-slate-900 mb-4"></div>
+            <p className="font-black text-xs text-slate-900 tracking-widest uppercase">FIRMA DEL EVALUADOR</p>
+            <p className="text-slate-400 text-[10px] mt-1 font-bold italic uppercase">Nombre, Sello y Cédula</p>
           </div>
           <div className="text-center">
-            <div className="border-t-2 border-slate-900 pt-3">
-              <p className="font-bold text-sm text-slate-900">FIRMA DEL EVALUADO</p>
-              <p className="text-slate-400 text-xs mt-1 italic">Residente</p>
-            </div>
+            <div className="h-0.5 bg-slate-900 mb-4"></div>
+            <p className="font-black text-xs text-slate-900 tracking-widest uppercase">FIRMA DEL EVALUADO</p>
+            <p className="text-slate-400 text-[10px] mt-1 font-bold italic uppercase">Residente en Formación</p>
           </div>
         </div>
       </div>
