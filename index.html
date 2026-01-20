@@ -6,20 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Evaluación Gautier - Emergenciología</title>
     
-    <!-- Tailwind CSS para los estilos -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Iconos y Fuentes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- 
-      IMPORTANTE: Babel Standalone permite que el navegador entienda archivos .tsx y JSX 
-      directamente. Esto es lo que hace que la página cargue en GitHub Pages.
-    -->
+    <!-- Cargador Babel para procesar TypeScript/React en el navegador -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Configuración de librerías externas -->
     <script type="importmap">
 {
   "imports": {
@@ -35,32 +28,55 @@
 </script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
         @media print { .no-print { display: none !important; } }
-        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Estilo para que la carga se vea más limpia */
         #root:empty::after {
-            content: 'Cargando sistema...';
+            content: 'Iniciando Sistema Gautier...';
             display: flex;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            color: #64748b;
-            font-weight: 600;
-            font-size: 1.1rem;
+            color: #3b82f6;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        
+        #error-display {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: #fee2e2;
+            border: 2px solid #ef4444;
+            padding: 20px;
+            border-radius: 12px;
+            color: #b91c1c;
+            z-index: 9999;
+            font-family: monospace;
+            white-space: pre-wrap;
         }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen">
+    <div id="error-display"></div>
     <div id="root"></div>
 
-    <!-- 
-      El script de entrada debe ser de tipo "text/babel" para que Babel lo procese.
-      data-type="module" es vital para que funcionen los 'import' dentro de los archivos.
-      data-presets="react,typescript" le dice a Babel cómo traducir el código.
-    -->
+    <script type="text/javascript">
+        // Capturador de errores crítico para detectar fallos en GitHub Pages
+        window.onerror = function(msg, url, line) {
+            const display = document.getElementById('error-display');
+            display.style.display = 'block';
+            display.innerHTML = `<strong>Error de Sistema:</strong>\n${msg}\n\nEn: ${url}\nLínea: ${line}`;
+            return false;
+        };
+    </script>
+
     <script 
       type="text/babel" 
       data-type="module" 
