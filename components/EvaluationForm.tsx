@@ -14,8 +14,8 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ initialData, onSubmit, 
     initialData || {
       firstName: '',
       lastName: '',
-      academicYear: '', // Inicia vacío
-      trimester: '',    // Inicia vacío
+      academicYear: ACADEMIC_YEARS[0], // 1° Año por defecto
+      trimester: TRIMESTERS[0],       // 1° Trimestre por defecto
       ratings: {},
     }
   );
@@ -30,7 +30,7 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ initialData, onSubmit, 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.firstName || !formData.lastName || !formData.academicYear || !formData.trimester) {
-      return alert("Por favor, complete todos los datos del residente (incluyendo Año y Trimestre)");
+      return alert("Por favor, complete los nombres del residente.");
     }
     
     const evaluation: Evaluation = {
@@ -72,7 +72,6 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ initialData, onSubmit, 
         </button>
       </div>
 
-      {/* Layout 2 arriba, 2 abajo */}
       <div className="bg-white p-8 rounded-[3rem] border border-blue-50 shadow-2xl shadow-blue-100/50 space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
           <div className="space-y-3">
@@ -103,9 +102,7 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ initialData, onSubmit, 
               className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-100 transition-all font-bold appearance-none cursor-pointer"
               value={formData.academicYear}
               onChange={e => setFormData({...formData, academicYear: e.target.value})}
-              required
             >
-              <option value="">Seleccionar año...</option>
               {ACADEMIC_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
           </div>
@@ -115,9 +112,7 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ initialData, onSubmit, 
               className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-100 transition-all font-bold appearance-none cursor-pointer"
               value={formData.trimester}
               onChange={e => setFormData({...formData, trimester: e.target.value})}
-              required
             >
-              <option value="">Seleccionar trimestre...</option>
               {TRIMESTERS.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>

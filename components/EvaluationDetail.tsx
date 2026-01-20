@@ -20,26 +20,30 @@ const EvaluationDetail: React.FC<EvaluationDetailProps> = ({ evaluation, onBack,
     setIsExporting(true);
     
     try {
-      // Ajustar temporalmente el estilo para asegurar captura completa
       const element = ref.current;
-      const originalStyle = element.style.height;
-      element.style.height = 'auto';
-
+      
+      // Capturamos el contenido. Eliminamos temporalmente clases de redondeado que cortan el canvas
       const canvas = await html2canvas(element, { 
         scale: 2, 
         logging: false, 
         useCORS: true,
-        allowTaint: true,
         backgroundColor: '#ffffff',
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight
+        windowWidth: 1200, // Forzamos un ancho estable para la captura
+        onclone: (clonedDoc) => {
+          // Aseguramos que el clon no tenga nada oculto
+          const clonedEl = clonedDoc.querySelector('[data-pdf-content]') as HTMLElement;
+          if (clonedEl) {
+            clonedEl.style.height = 'auto';
+            clonedEl.style.overflow = 'visible';
+          }
+        }
       });
 
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       
       const imgWidth = 210; 
-      const pageHeight = 297;
+      const pageHeight = 295; // Margen de seguridad
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       let heightLeft = imgHeight;
       let position = 0;
@@ -48,19 +52,18 @@ const EvaluationDetail: React.FC<EvaluationDetailProps> = ({ evaluation, onBack,
       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
 
-      // Páginas adicionales si el contenido es largo
-      while (heightLeft >= 0) {
+      // Páginas adicionales si el contenido excede el A4
+      while (heightLeft > 0) {
         position = heightLeft - imgHeight;
         pdf.addPage();
         pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
       }
 
-      pdf.save(`Gautier_${evaluation.lastName}_${evaluation.firstName}.pdf`);
-      element.style.height = originalStyle;
+      pdf.save(`Gautier_${evaluation.lastName}.pdf`);
     } catch (error) {
-      console.error("Error generating PDF:", error);
-      alert("Hubo un error al generar el PDF. Intente nuevamente.");
+      console.error("Error al exportar:", error);
+      alert("Error al generar el PDF. Por favor intente en un navegador moderno.");
     } finally {
       setIsExporting(false);
     }
@@ -70,7 +73,7 @@ const EvaluationDetail: React.FC<EvaluationDetailProps> = ({ evaluation, onBack,
     <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
       <div className="flex justify-between items-center no-print px-4">
         <button onClick={onBack} className="group font-black text-slate-400 hover:text-blue-600 flex items-center gap-2 uppercase tracking-widest text-[10px] transition-all">
-          <i className="fas fa-long-arrow-alt-left group-hover:-translate-x-1 transition-transform"></i> Volver al panel
+          <i className="fas fa-long-arrow-alt-left group-hover:-translate-x-1 transition-transform"></i> Volver
         </button>
         <div className="flex gap-4">
           <button onClick={onEdit} className="px-6 py-3 rounded-2xl font-black bg-white text-slate-600 border border-slate-100 shadow-sm hover:bg-slate-50 transition-all text-[10px] tracking-widest uppercase">
@@ -82,12 +85,12 @@ const EvaluationDetail: React.FC<EvaluationDetailProps> = ({ evaluation, onBack,
             className={`px-8 py-3 rounded-2xl font-black text-white shadow-xl transition-all text-[10px] tracking-widest uppercase flex items-center gap-2 ${isExporting ? 'bg-slate-400 cursor-wait' : 'bg-blue-600 shadow-blue-200 hover:bg-blue-700'}`}
           >
             {isExporting ? <i className="fas fa-circle-notch animate-spin"></i> : <i className="fas fa-file-pdf"></i>}
-            {isExporting ? 'Generando...' : 'Exportar PDF'}
+            {isExporting ? 'Procesando...' : 'Descargar PDF'}
           </button>
         </div>
       </div>
 
-      <div ref={ref} className="bg-white p-12 md:p-16 rounded-[4rem] shadow-2xl border border-slate-50 print:shadow-none print:p-8 overflow-hidden">
+      <div ref={ref} data-pdf-content className="bg-white p-12 md:p-20 rounded-[4rem] shadow-2xl border border-slate-50 print:shadow-none print:p-8 overflow-visible">
         <div className="flex flex-col items-center text-center mb-16 space-y-4">
           <div className="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center mb-4 shadow-xl shadow-blue-100">
             <i className="fas fa-hospital text-white text-3xl"></i>
