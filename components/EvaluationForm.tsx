@@ -14,8 +14,8 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ initialData, onSubmit, 
     initialData || {
       firstName: '',
       lastName: '',
-      academicYear: ACADEMIC_YEARS[0], // Inicia con 1° Año
-      trimester: TRIMESTERS[0],       // Inicia con 1° Trimestre
+      academicYear: '', 
+      trimester: '',    
       ratings: {},
     }
   );
@@ -32,13 +32,16 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ initialData, onSubmit, 
     if (!formData.firstName || !formData.lastName) {
       return alert("Por favor, ingrese el nombre y apellido del residente.");
     }
+    if (!formData.academicYear || !formData.trimester) {
+      return alert("Por favor, seleccione el Año Académico y el Trimestre.");
+    }
     
     const evaluation: Evaluation = {
       id: formData.id || Math.random().toString(36).substr(2, 9),
       firstName: formData.firstName!,
       lastName: formData.lastName!,
-      academicYear: formData.academicYear || ACADEMIC_YEARS[0],
-      trimester: formData.trimester || TRIMESTERS[0],
+      academicYear: formData.academicYear!,
+      trimester: formData.trimester!,
       date: formData.date || new Date().toISOString(),
       ratings: formData.ratings as EvaluationRatings || {},
     };
@@ -74,7 +77,6 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ initialData, onSubmit, 
 
       <div className="bg-white p-8 rounded-[3rem] border border-blue-50 shadow-2xl shadow-blue-100/50">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-          {/* Fila 1: Nombres */}
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Nombre</label>
             <input 
@@ -97,24 +99,27 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ initialData, onSubmit, 
               required
             />
           </div>
-          {/* Fila 2: Año y Trimestre */}
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Año Académico</label>
             <select 
-              className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-100 transition-all font-bold appearance-none cursor-pointer"
+              className={`w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-100 transition-all font-bold appearance-none cursor-pointer ${!formData.academicYear ? 'text-slate-400' : 'text-slate-900'}`}
               value={formData.academicYear}
               onChange={e => setFormData({...formData, academicYear: e.target.value})}
+              required
             >
+              <option value="" disabled>Seleccionar año...</option>
               {ACADEMIC_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
           </div>
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Trimestre</label>
             <select 
-              className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-100 transition-all font-bold appearance-none cursor-pointer"
+              className={`w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-100 transition-all font-bold appearance-none cursor-pointer ${!formData.trimester ? 'text-slate-400' : 'text-slate-900'}`}
               value={formData.trimester}
               onChange={e => setFormData({...formData, trimester: e.target.value})}
+              required
             >
+              <option value="" disabled>Seleccionar trimestre...</option>
               {TRIMESTERS.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>

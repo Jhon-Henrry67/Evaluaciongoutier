@@ -22,15 +22,23 @@ const EvaluationDetail: React.FC<EvaluationDetailProps> = ({ evaluation, onBack,
     try {
       const element = containerRef.current;
       
-      // Aseguramos que el elemento sea visible totalmente para la captura
+      // Capturamos el contenido forzando la altura completa del elemento
       const canvas = await html2canvas(element, { 
         scale: 2, 
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
-        scrollY: -window.scrollY,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight
+        // Esto asegura que se capture todo el scroll
+        height: element.scrollHeight,
+        windowHeight: element.scrollHeight,
+        onclone: (documentClone) => {
+          // Aseguramos que el elemento clonado sea visible
+          const el = documentClone.querySelector('[data-pdf-container]') as HTMLElement;
+          if (el) {
+            el.style.overflow = 'visible';
+            el.style.height = 'auto';
+          }
+        }
       });
 
       const imgData = canvas.toDataURL('image/png');
@@ -38,28 +46,28 @@ const EvaluationDetail: React.FC<EvaluationDetailProps> = ({ evaluation, onBack,
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgProps = pdf.getImageProperties(imgData);
-      const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
       let heightLeft = imgHeight;
       let position = 0;
 
       // Primera página
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
       heightLeft -= pdfHeight;
 
-      // Páginas subsiguientes
-      while (heightLeft >= 0) {
+      // Páginas subsiguientes para contenido largo
+      while (heightLeft > 0) {
         position = heightLeft - imgHeight;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
         heightLeft -= pdfHeight;
       }
 
       pdf.save(`Evaluacion_${evaluation.lastName}_${evaluation.firstName}.pdf`);
     } catch (error) {
       console.error("Error al exportar PDF:", error);
-      alert("Error al generar el PDF. Asegúrese de estar en un navegador moderno.");
+      alert("Error al generar el PDF. Intente nuevamente.");
     } finally {
       setIsExporting(false);
     }
@@ -86,7 +94,7 @@ const EvaluationDetail: React.FC<EvaluationDetailProps> = ({ evaluation, onBack,
         </div>
       </div>
 
-      <div ref={containerRef} className="bg-white p-12 md:p-16 rounded-[4rem] shadow-2xl border border-slate-50 overflow-visible">
+      <div ref={containerRef} data-pdf-container className="bg-white p-12 md:p-16 rounded-[4rem] shadow-2xl border border-slate-50 overflow-visible">
         {/* Cabecera del PDF */}
         <div className="flex flex-col items-center text-center mb-16 space-y-4">
           <div className="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center mb-4 shadow-xl shadow-blue-100">
