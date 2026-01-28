@@ -14,8 +14,8 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ initialData, onSubmit, 
     initialData || {
       firstName: '',
       lastName: '',
-      academicYear: '', // Vacío por defecto
-      trimester: '',    // Vacío por defecto
+      academicYear: '', 
+      trimester: '',    
       ratings: {},
     }
   );
@@ -32,10 +32,10 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ initialData, onSubmit, 
     if (!formData.firstName || !formData.lastName) {
       return alert("Por favor, ingresa el nombre y apellido del residente.");
     }
-    if (!formData.academicYear || formData.academicYear === "") {
+    if (!formData.academicYear) {
       return alert("Por favor, selecciona tu año académico.");
     }
-    if (!formData.trimester || formData.trimester === "") {
+    if (!formData.trimester) {
       return alert("Por favor, selecciona el trimestre.");
     }
     
@@ -85,7 +85,7 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ initialData, onSubmit, 
             <input 
               type="text" 
               placeholder="Ej. Juan"
-              className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-100 transition-all font-bold placeholder:text-slate-300"
+              className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-100 transition-all font-bold"
               value={formData.firstName}
               onChange={e => setFormData({...formData, firstName: e.target.value})}
               required
@@ -96,13 +96,13 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ initialData, onSubmit, 
             <input 
               type="text" 
               placeholder="Ej. Pérez"
-              className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-100 transition-all font-bold placeholder:text-slate-300"
+              className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-blue-100 transition-all font-bold"
               value={formData.lastName}
               onChange={e => setFormData({...formData, lastName: e.target.value})}
               required
             />
           </div>
-          <div className="space-y-2 relative">
+          <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Año Académico</label>
             <div className="relative">
               <select 

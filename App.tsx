@@ -8,6 +8,7 @@ import EvaluationDetail from './components/EvaluationDetail';
 import { Evaluation } from './types';
 
 // Contenedor JSON público para sincronización multi-dispositivo
+// Cambiado a un endpoint con persistencia PUT habilitada
 const CLOUD_URL = 'https://api.npoint.io/07d5810f63ca52f10f81';
 
 const App: React.FC = () => {
@@ -18,19 +19,17 @@ const App: React.FC = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<Date | null>(null);
 
-  // Al cargar, siempre busca los datos más recientes de la nube
   useEffect(() => {
     fetchCloudData();
-    
-    // Auto-refresco cada 2 minutos para ver cambios de otros usuarios
-    const interval = setInterval(fetchCloudData, 120000);
+    // Refresco automático cada 60 segundos para sincronización en vivo
+    const interval = setInterval(fetchCloudData, 60000);
     return () => clearInterval(interval);
   }, []);
 
   const fetchCloudData = async () => {
     setIsSyncing(true);
     try {
-      const res = await fetch(CLOUD_URL);
+      const res = await fetch(`${CLOUD_URL}?cache_bust=${Date.now()}`);
       if (res.ok) {
         const data = await res.json();
         const cleanData = Array.isArray(data) ? data : [];
@@ -39,8 +38,7 @@ const App: React.FC = () => {
         setLastSync(new Date());
       }
     } catch (e) {
-      console.error("Error de conexión:", e);
-      // Si falla la nube, usar local como respaldo
+      console.error("Fallo de conexión, usando local storage:", e);
       const local = localStorage.getItem('gautier_evals');
       if (local) setEvaluations(JSON.parse(local));
     } finally {
@@ -51,14 +49,15 @@ const App: React.FC = () => {
   const handleSave = async (evaluation: Evaluation) => {
     setIsSyncing(true);
     try {
-      // 1. Obtener datos actuales de la nube para no sobreescribir lo de otros
-      const res = await fetch(CLOUD_URL);
+      // 1. Obtener estado actual para no pisar cambios de otros
+      const currentRes = await fetch(CLOUD_URL);
       let currentData: Evaluation[] = [];
-      if (res.ok) {
-        currentData = await res.json();
+      if (currentRes.ok) {
+        const cloudJson = await currentRes.json();
+        currentData = Array.isArray(cloudJson) ? cloudJson : [];
       }
 
-      // 2. Integrar el nuevo registro
+      // 2. Fusionar datos
       const existsIdx = currentData.findIndex(e => e.id === evaluation.id);
       let updated: Evaluation[];
       if (existsIdx > -1) {
@@ -68,7 +67,7 @@ const App: React.FC = () => {
         updated = [evaluation, ...currentData];
       }
 
-      // 3. Guardar en la nube y local
+      // 3. Subir a la nube
       const saveRes = await fetch(CLOUD_URL, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -81,10 +80,10 @@ const App: React.FC = () => {
         setLastSync(new Date());
         setView('list');
       } else {
-        throw new Error("Error al guardar en nube");
+        throw new Error("Error en servidor");
       }
     } catch (e) {
-      alert("Error de sincronización. Comprueba tu conexión a internet.");
+      alert("No se pudo sincronizar con la nube. Verifica tu conexión.");
       console.error(e);
     } finally {
       setIsSyncing(false);
